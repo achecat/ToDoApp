@@ -41,3 +41,16 @@ class ServiceTarefas:
             session.commit()
 
         session.close()
+
+
+    @staticmethod
+    def deletar_tarefa(tarefa_id):
+        session = Session()
+
+        tarefa = session.query(Tarefa).filter_by(id=tarefa_id).first()
+
+        if tarefa:
+            session.delete(tarefa)
+            session.commit()
+
+        session.close()
