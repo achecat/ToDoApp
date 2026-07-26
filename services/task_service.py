@@ -28,3 +28,16 @@ class ServiceTarefas:
         session.close()
 
         return tarefas
+
+
+    @staticmethod
+    def alternar_status(tarefa_id):
+        session = Session()
+
+        tarefa = session.query(Tarefa).filter_by(id=tarefa_id).first()
+
+        if tarefa:
+            tarefa.concluida = not tarefa.concluida
+            session.commit()
+
+        session.close()
