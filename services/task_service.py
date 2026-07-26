@@ -19,4 +19,12 @@ class ServiceTarefas:
         session.close()
 
 
+    @staticmethod
+    def listar_todas():
+        session = Session()
 
+        tarefas = session.query(Tarefa).all()
+
+        session.close()
+
+        return tarefas
