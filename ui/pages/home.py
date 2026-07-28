@@ -3,19 +3,38 @@ from services.task_service import ServiceTarefas
 
 class HomePage(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
-        super().__init__(master, **kwargs)
+        super().__init__(master, fg_color="transparent", **kwargs)
 
-        #titulo
-        self.titulo = ctk.CTkLabel(
-            self, text="Sua Lista de Tarefas", font=("Arial", 20, "bold")
+
+        #config do grid (2 colunas com larguras iguais)
+        self.grid_columnconfigure((0, 1), weight=1, uniform="group1")
+        self.grid_rowconfigure(1, weight=1)
+
+        #cabeçalhos das colunas
+        lbl_a_fazer = ctk.CTkLabel(
+            self, text="📌 A Fazer", font=("Arial", 18, "bold"), text_color="#74B9FF"
         )
-        self.titulo.pack(anchor="w", padx=20, pady=(15,5))
+        lbl_a_fazer.grid(row=0, column=0, pady=(10, 5), sticky="w", padx=15)
+
+        lbl_concluidos = ctk.CTkLabel(
+            self, text="✅ Concluídos", font=("Arial", 18, "bold"), text_color="#55E6C1"
+        )
+        lbl_concluidos.grid(row=0, column=1, pady=(10, 5), sticky="w", padx=15)
+
+
+
 
 
         #area rolavel (la ele)
-        self.scroll_tarefas = ctk.CTkScrollableFrame(self)
-        self.scroll_tarefas.pack(fill="both", expand=True, padx=15, pady=10)
+        self.scroll_a_fazer = ctk.CTkScrollableFrame(
+            self, fg_color="#2A2A3D", corner_radius=12
+        )
+        self.scroll_a_fazer.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
 
+        self.scroll_concluidos = ctk.CTkScrollableFrame(
+            self, fg_color="#2A2A3D", corner_radius=12
+        )
+        self.scroll_concluidos.grid(row=1, column=1, sticky="nsew", padx=10, pady=10)
 
         #renderiza os dados do banco
         self.carregar_tarefas()
@@ -25,31 +44,24 @@ class HomePage(ctk.CTkFrame):
         '''Limpa a lista atual e busca as tarefas do banco'''
 
         #limpa elementos antigos da tela
-        for widget in self.scroll_tarefas.winfo_children():
-            widget.destroy()
+        for w in self.scroll_a_fazer.winfo_children():
+            w.destroy()
+        for w in self.scroll_concluidos.winfo_children():
+            w.destroy()
 
 
         #busca os dados no banco
         tarefas= ServiceTarefas.listar_todas()
 
-        if not tarefas:
-            msg_vazio = ctk.CTkLabel(
-                self.scroll_tarefas,
-                text="Nenhuma tarefa encontrada.",
-                font=("Arial", 14, "italic")
-            )
-            msg_vazio.pack(pady=20)
-            return
-
 
         #cria card pra cada tarefa
         for t in tarefas:
-            self._criar_card_tarefa(t)
+            self._criar_card_tarefa(self.scroll_a_fazer, t)
 
 
-    def _criar_card_tarefa(self, tarefa):
+    def _criar_card_tarefa(self, parent, tarefa):
         '''Cria a linha da tarefa/card da tarefa, começa com _ pra ser privada'''
-        card_frame = ctk.CTkFrame(self.scroll_tarefas)
+        card_frame = ctk.CTkFrame(parent)
         card_frame.pack(fill="x", pady=5, padx=5)
 
 
@@ -64,7 +76,7 @@ class HomePage(ctk.CTkFrame):
         chk.pack(side="left", padx=10, pady=10)
 
 
-        #botão excluir
+        #btn = (botão) excluir
         btn_deletar = ctk.CTkButton(
             card_frame,
             text="❌",
