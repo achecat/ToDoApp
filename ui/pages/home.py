@@ -10,6 +10,7 @@ class HomePage(ctk.CTkFrame):
         self.grid_columnconfigure((0, 1), weight=1, uniform="group1")
         self.grid_rowconfigure(1, weight=1)
 
+
         #cabeçalhos das colunas
         lbl_a_fazer = ctk.CTkLabel(
             self, text="📌 A Fazer", font=("Arial", 18, "bold"), text_color="#74B9FF"
@@ -22,9 +23,6 @@ class HomePage(ctk.CTkFrame):
         lbl_concluidos.grid(row=0, column=1, pady=(10, 5), sticky="w", padx=15)
 
 
-
-
-
         #area rolavel (la ele)
         self.scroll_a_fazer = ctk.CTkScrollableFrame(
             self, fg_color="#2A2A3D", corner_radius=12
@@ -35,6 +33,7 @@ class HomePage(ctk.CTkFrame):
             self, fg_color="#2A2A3D", corner_radius=12
         )
         self.scroll_concluidos.grid(row=1, column=1, sticky="nsew", padx=10, pady=10)
+
 
         #renderiza os dados do banco
         self.carregar_tarefas()
@@ -53,40 +52,64 @@ class HomePage(ctk.CTkFrame):
         #busca os dados no banco
         tarefas= ServiceTarefas.listar_todas()
 
+        a_fazer = [t for t in tarefas if not t.concluida]
+        concluidas = [t for t in tarefas if t.concluida]
 
-        #cria card pra cada tarefa
-        for t in tarefas:
-            self._criar_card_tarefa(self.scroll_a_fazer, t)
+
+        # Preenche a coluna "A Fazer"
+        if not a_fazer:
+            ctk.CTkLabel(
+                self.scroll_a_fazer, text="Nenhuma tarefa pendente!", text_color="#A0A0A0"
+            ).pack(pady=20)
+        else:
+            for t in a_fazer:
+                self._criar_card_tarefa(self.scroll_a_fazer, t)
+
+
+        # Preenche a coluna "Concluídos"
+        if not concluidas:
+            ctk.CTkLabel(
+                self.scroll_concluidos, text="Nenhuma tarefa concluída.", text_color="#A0A0A0"
+            ).pack(pady=20)
+        else:
+            for t in concluidas:
+                self._criar_card_tarefa(self.scroll_concluidos, t)
 
 
     def _criar_card_tarefa(self, parent, tarefa):
         '''Cria a linha da tarefa/card da tarefa, começa com _ pra ser privada'''
-        card_frame = ctk.CTkFrame(parent)
-        card_frame.pack(fill="x", pady=5, padx=5)
+        card = ctk.CTkFrame(parent, fg_color="#1E1E2E", corner_radius=8)
+        card.pack(fill="x", pady=5, padx=5)
 
 
         #caixinha pra marcar que foi concluida
-        chk_var = ctk.BooleanVar(value=tarefa.concluida)
         chk = ctk.CTkCheckBox(
-            card_frame,
+            card,
             text=f"[{tarefa.categoria}] {tarefa.titulo}",
-            variable=chk_var,
-            command=lambda: self._toggle_status(tarefa.id),
+            font=("Arial", 13),
+            checkbox_width=20,
+            checkbox_height=20,
+            command=lambda t_id=tarefa.id: self._toggle_status(t_id),
         )
-        chk.pack(side="left", padx=10, pady=10)
+        if tarefa.concluida:
+            chk.select()
+        else:
+            chk.deselect()
+
+        chk.pack(side="left", padx=10, pady=12, fill="x", expand=True)
 
 
         #btn = (botão) excluir
         btn_deletar = ctk.CTkButton(
-            card_frame,
-            text="❌",
+            card,
+            text="🗑️",
             width=30,
+            height=30,
             fg_color="transparent",
-            hover_color="#8B0000",
-            command=lambda: self._deletar(tarefa.id),
+            hover_color="#FF4D4D",
+            command=lambda t_id=tarefa.id: self._deletar(t_id),
         )
-        btn_deletar.pack(side="right", padx=10)
-
+        btn_deletar.pack(side="right", padx=8)
 
     def _toggle_status(self, tarefa_id):
         ServiceTarefas.alternar_status(tarefa_id)
